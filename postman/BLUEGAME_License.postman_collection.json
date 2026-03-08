@@ -1,0 +1,204 @@
+{
+  "info": {
+    "_postman_id": "4df6406e-a6a1-4d8b-af8f-22f5f7068a5f",
+    "name": "BLUEGAME License Flow",
+    "description": "End-to-end flow: get Keycloak token, activate license, assign seat, test user access.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1) Get ADMIN Token (Keycloak)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "password", "type": "text" },
+            { "key": "client_id", "value": "{{clientIdApi}}", "type": "text" },
+            { "key": "client_secret", "value": "{{clientSecretApi}}", "type": "text" },
+            { "key": "username", "value": "{{usernameAdmin}}", "type": "text" },
+            { "key": "password", "value": "{{passwordAdmin}}", "type": "text" }
+          ]
+        },
+        "url": "{{keycloakBaseUrl}}/realms/{{realm}}/protocol/openid-connect/token"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.environment.set('adminAccessToken', json.access_token || '');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2) Get USER Token (Keycloak)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "password", "type": "text" },
+            { "key": "client_id", "value": "{{clientIdApi}}", "type": "text" },
+            { "key": "client_secret", "value": "{{clientSecretApi}}", "type": "text" },
+            { "key": "username", "value": "{{usernameUser}}", "type": "text" },
+            { "key": "password", "value": "{{passwordUser}}", "type": "text" }
+          ]
+        },
+        "url": "{{keycloakBaseUrl}}/realms/{{realm}}/protocol/openid-connect/token"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.environment.set('userAccessToken', json.access_token || '');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3) Health",
+      "request": {
+        "method": "GET",
+        "url": "{{apiBaseUrl}}/health"
+      }
+    },
+    {
+      "name": "4) License Status (ADMIN)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{apiBaseUrl}}/license"
+      }
+    },
+    {
+      "name": "5) Activate License Code (ADMIN)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"{{licenseCode}}\"\n}"
+        },
+        "url": "{{apiBaseUrl}}/license/activate"
+      }
+    },
+    {
+      "name": "6) Assign Seat to User (ADMIN)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": true,\n  \"notes\": \"Assigned from Postman\"\n}"
+        },
+        "url": "{{apiBaseUrl}}/license/users/{{userId}}"
+      }
+    },
+    {
+      "name": "7) Remove Seat from User (ADMIN)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": false,\n  \"notes\": \"Removed from Postman\"\n}"
+        },
+        "url": "{{apiBaseUrl}}/license/users/{{userId}}"
+      }
+    },
+    {
+      "name": "8) Current User (USER)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{userAccessToken}}"
+          }
+        ],
+        "url": "{{apiBaseUrl}}/users/me"
+      }
+    },
+    {
+      "name": "9) List Users (ADMIN)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{apiBaseUrl}}/users"
+      }
+    },
+    {
+      "name": "10) Deactivate License (ADMIN)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminAccessToken}}"
+          }
+        ],
+        "url": "{{apiBaseUrl}}/license/deactivate"
+      }
+    }
+  ]
+}

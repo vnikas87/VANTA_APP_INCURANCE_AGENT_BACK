@@ -1,0 +1,31 @@
+model User {
+  id            Int            @id @default(autoincrement())
+  keycloakId    String         @unique
+  name          String
+  email         String         @unique
+  phone         String?
+  mobilePhone   String?
+  companyRole   String?
+  signature     String?
+  avatarUrl     String?
+  createdId     Int
+  updatedId     Int
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  createdBy     User           @relation("UserCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy     User           @relation("UserUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdUsers  User[]         @relation("UserCreatedBy")
+  updatedUsers  User[]         @relation("UserUpdatedBy")
+  apiCallLogs   ApiCallLog[]
+  authEventLogs AuthEventLog[]
+  userLicense   UserLicense?   @relation("UserLicenseOwner")
+  activatedUserLicenses UserLicense[] @relation("UserLicenseActivatedBy")
+  deactivatedUserLicenses UserLicense[] @relation("UserLicenseDeactivatedBy")
+  activatedLicenseGrants LicenseGrant[] @relation("LicenseGrantActivatedBy")
+  deactivatedLicenseGrants LicenseGrant[] @relation("LicenseGrantDeactivatedBy")
+
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("users")
+}

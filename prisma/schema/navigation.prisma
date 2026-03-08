@@ -1,0 +1,71 @@
+model NavigationGroup {
+  id        Int                @id @default(autoincrement())
+  name      String             @unique
+  sortOrder Int                @default(0)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  folders   NavigationFolder[]
+
+  @@index([sortOrder])
+  @@map("navigation_groups")
+}
+
+model NavigationFolder {
+  id         Int                   @id @default(autoincrement())
+  groupId    Int
+  name       String
+  sortOrder  Int                   @default(0)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+  group      NavigationGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subFolders NavigationSubFolder[]
+
+  @@index([groupId])
+  @@index([sortOrder])
+  @@unique([groupId, name])
+  @@map("navigation_folders")
+}
+
+model NavigationSubFolder {
+  id         Int                    @id @default(autoincrement())
+  folderId   Int
+  name       String
+  path       String
+  sortOrder  Int                    @default(0)
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+  folder     NavigationFolder       @relation(fields: [folderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  rules      NavigationAccessRule[]
+
+  @@index([folderId])
+  @@index([sortOrder])
+  @@unique([folderId, path])
+  @@map("navigation_sub_folders")
+}
+
+model NavigationAccessRule {
+  id          Int                 @id @default(autoincrement())
+  subFolderId Int
+  roleName    String
+  canAccess   Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  subFolder   NavigationSubFolder @relation(fields: [subFolderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([subFolderId])
+  @@index([roleName])
+  @@unique([subFolderId, roleName])
+  @@map("navigation_access_rules")
+}
+
+model NavigationRole {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@map("navigation_roles")
+}

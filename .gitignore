@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+license/private.pem
+certs/
+uploads/
+.DS_Store
+*.log

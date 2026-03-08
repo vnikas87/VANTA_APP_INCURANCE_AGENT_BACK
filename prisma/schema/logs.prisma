@@ -1,0 +1,30 @@
+model ApiCallLog {
+  id           Int      @id @default(autoincrement())
+  userId       Int?
+  userName     String?
+  method       String
+  route        String
+  functionName String
+  statusCode   Int
+  calledAt     DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([calledAt])
+  @@map("api_call_logs")
+}
+
+model AuthEventLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  userName   String?
+  eventType  String
+  sourcePath String
+  details    String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("auth_event_logs")
+}
