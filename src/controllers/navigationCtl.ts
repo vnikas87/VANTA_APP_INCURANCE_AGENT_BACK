@@ -39,6 +39,10 @@ const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
 const ROLE_OPS_USER = 'OPS_USER';
 const ADMIN_ONLY_PREFIXES = ['/settings/access-control', '/management/users'];
 
+function isAdminOnlyPath(path: string): boolean {
+  return ADMIN_ONLY_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
 function normalizeRoles(roles: string[]): string[] {
   const normalized = roles.map((role) => role.toUpperCase().trim());
 
@@ -72,7 +76,7 @@ function canAccessSubFolder(
   }
 
   // Keep router behavior consistent: these paths are admin-only in frontend routing.
-  if (ADMIN_ONLY_PREFIXES.some((prefix) => subFolder.path === prefix || subFolder.path.startsWith(`${prefix}/`))) {
+  if (isAdminOnlyPath(subFolder.path)) {
     return false;
   }
 
@@ -91,6 +95,14 @@ function canAccessSubFolder(
 async function isAllowedNavigationRole(roleName: string): Promise<boolean> {
   const normalized = roleName.toUpperCase().trim();
   return normalized === ROLE_ADMINISTRATOR || normalized === ROLE_OPS_USER;
+}
+
+function validateRolePathCompatibility(roleName: string, path: string): string | null {
+  const normalizedRole = roleName.toUpperCase().trim();
+  if (normalizedRole === ROLE_OPS_USER && isAdminOnlyPath(path)) {
+    return 'OPS_USER cannot be assigned to admin-only routes (/settings/access-control*, /management/users*)';
+  }
+  return null;
 }
 
 export async function getNavigationMenu(req: Request, res: Response): Promise<Response> {
@@ -467,6 +479,17 @@ export async function createRule(req: Request, res: Response): Promise<Response>
     if (!(await isAllowedNavigationRole(roleName))) {
       return res.status(400).json({ error: 'Invalid roleName for navigation rule' });
     }
+    const subFolder = await prisma.navigationSubFolder.findUnique({
+      where: { id: subFolderId },
+      select: { path: true },
+    });
+    if (!subFolder) {
+      return res.status(404).json({ error: 'Sub folder not found' });
+    }
+    const compatibilityError = validateRolePathCompatibility(roleName, subFolder.path);
+    if (compatibilityError) {
+      return res.status(400).json({ error: compatibilityError });
+    }
 
     const created = await prisma.navigationAccessRule.upsert({
       where: {
@@ -496,8 +519,21 @@ export async function updateRule(req: Request, res: Response): Promise<Response>
   try {
     const id = Number(req.params.id);
     const { roleName, canAccess } = req.body as RuleBody;
+    const existingRule = await prisma.navigationAccessRule.findUnique({
+      where: { id },
+      include: { subFolder: { select: { path: true } } },
+    });
+    if (!existingRule) {
+      return res.status(404).json({ error: 'Rule not found' });
+    }
+
     if (roleName && !(await isAllowedNavigationRole(roleName))) {
       return res.status(400).json({ error: 'Invalid roleName for navigation rule' });
+    }
+    const targetRole = roleName ? roleName.toUpperCase().trim() : existingRule.roleName;
+    const compatibilityError = validateRolePathCompatibility(targetRole, existingRule.subFolder.path);
+    if (compatibilityError) {
+      return res.status(400).json({ error: compatibilityError });
     }
 
     const updated = await prisma.navigationAccessRule.update({
