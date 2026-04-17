@@ -12,7 +12,11 @@ export function permissionMiddleware(
   const hasAccess = userRoles.some((role) => allowedRoles.includes(role));
 
   if (!hasAccess) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({
+      error: 'Forbidden',
+      code: 'PERMISSION_DENIED',
+      requiredRoles: allowedRoles,
+    });
   }
 
   return next();
