@@ -37,6 +37,7 @@ type MoveSubFolderBody = {
 
 const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
 const ROLE_OPS_USER = 'OPS_USER';
+const ADMIN_ONLY_PREFIXES = ['/settings/access-control', '/management/users'];
 
 function normalizeRoles(roles: string[]): string[] {
   const normalized = roles.map((role) => role.toUpperCase().trim());
@@ -67,6 +68,11 @@ function canAccessSubFolder(
   }
 
   if (!roles.includes(ROLE_OPS_USER)) {
+    return false;
+  }
+
+  // Keep router behavior consistent: these paths are admin-only in frontend routing.
+  if (ADMIN_ONLY_PREFIXES.some((prefix) => subFolder.path === prefix || subFolder.path.startsWith(`${prefix}/`))) {
     return false;
   }
 
