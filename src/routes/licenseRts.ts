@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { API_ROLES, LEGACY_API_ROLES } from '../config/roles';
+import { LEGACY_API_ROLES } from '../config/roles';
 import {
   activateLicenseCode,
   deactivateLicense,
@@ -12,7 +12,7 @@ import { requireRoles } from '../middleware/requireRoles';
 
 const router = Router();
 
-router.use(authMiddleware, permissionMiddleware, requireRoles([API_ROLES.ADMIN, LEGACY_API_ROLES.ADMINISTRATOR]));
+router.use(authMiddleware, permissionMiddleware, requireRoles([LEGACY_API_ROLES.ADMINISTRATOR]));
 
 router.get('/', getLicenseStatus);
 router.post('/activate', activateLicenseCode);

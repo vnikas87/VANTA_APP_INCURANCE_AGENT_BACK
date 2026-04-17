@@ -35,25 +35,63 @@ type MoveSubFolderBody = {
   targetIndex?: number;
 };
 
+const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
+const ROLE_OPS_USER = 'OPS_USER';
+
+const OPS_ALLOWED_EXACT_PATHS = new Set(['/']);
+const OPS_ALLOWED_PREFIXES = ['/insurance/production', '/settings/profile'];
+
 function normalizeRoles(roles: string[]): string[] {
-  const normalized = roles.map((role) => role.toUpperCase());
-  if (normalized.includes('OPS_USER') || normalized.includes('OPS_MANAGEMENT')) {
+  const normalized = roles.map((role) => role.toUpperCase().trim());
+
+  // Support old/new naming to avoid lockouts during role migration.
+  if (
+    normalized.includes('OPS') ||
+    normalized.includes('OPS_USER') ||
+    normalized.includes('OPS_MANAGEMENT')
+  ) {
     normalized.push('OPS');
+    normalized.push(ROLE_OPS_USER);
   }
-  return Array.from(new Set(normalized));
+
+  if (normalized.includes('ADMIN')) {
+    normalized.push(ROLE_ADMINISTRATOR);
+  }
+
+  return Array.from(new Set(normalized.filter(Boolean)));
+}
+
+function canAccessPath(path: string, roles: string[]): boolean {
+  if (roles.includes(ROLE_ADMINISTRATOR)) {
+    return true;
+  }
+
+  if (!roles.includes(ROLE_OPS_USER)) {
+    return false;
+  }
+
+  if (OPS_ALLOWED_EXACT_PATHS.has(path)) {
+    return true;
+  }
+
+  if (OPS_ALLOWED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
+    return true;
+  }
+
+  return false;
 }
 
 async function isAllowedNavigationRole(roleName: string): Promise<boolean> {
-  const existing = await prisma.navigationRole.findUnique({
-    where: { name: roleName.toUpperCase() },
-    select: { id: true },
-  });
-  return Boolean(existing);
+  const normalized = roleName.toUpperCase().trim();
+  return normalized === ROLE_ADMINISTRATOR || normalized === ROLE_OPS_USER;
 }
 
 export async function getNavigationMenu(req: Request, res: Response): Promise<Response> {
   try {
     const userRoles = normalizeRoles(req.user?.roles ?? []);
+    if (!userRoles.includes(ROLE_ADMINISTRATOR) && !userRoles.includes(ROLE_OPS_USER)) {
+      return res.json([]);
+    }
 
     const groups = await prisma.navigationGroup.findMany({
       orderBy: { sortOrder: 'asc' },
@@ -76,24 +114,7 @@ export async function getNavigationMenu(req: Request, res: Response): Promise<Re
         folders: group.folders
           .map((folder) => ({
             ...folder,
-            subFolders: folder.subFolders.filter((sub) => {
-              // Dashboard root stays available for authenticated users by default.
-              if (sub.path === '/') return true;
-
-              // Backward-compatible default for operations users.
-              // Allow production paths for OPS-family roles even if older DB rules are missing/deny.
-              if (
-                sub.path.startsWith('/insurance/production') &&
-                (userRoles.includes('OPS') ||
-                  userRoles.includes('OPS_USER') ||
-                  userRoles.includes('OPS_MANAGEMENT'))
-              ) {
-                return true;
-              }
-
-              if (sub.rules.length === 0) return false;
-              return sub.rules.some((rule) => rule.canAccess && userRoles.includes(rule.roleName.toUpperCase()));
-            }),
+            subFolders: folder.subFolders.filter((sub) => canAccessPath(sub.path, userRoles)),
           }))
           .filter((folder) => folder.subFolders.length > 0),
       }))

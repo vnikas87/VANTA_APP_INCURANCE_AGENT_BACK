@@ -10,6 +10,11 @@ type NavRoleBody = {
 export async function getNavigationRoles(_req: Request, res: Response): Promise<Response> {
   try {
     const roles = await prisma.navigationRole.findMany({
+      where: {
+        name: {
+          in: ['ADMINISTRATOR', 'OPS_USER'],
+        },
+      },
       orderBy: [{ isSystem: 'desc' }, { name: 'asc' }],
     });
 

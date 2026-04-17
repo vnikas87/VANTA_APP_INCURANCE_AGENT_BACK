@@ -119,10 +119,14 @@ export function extractRoles(payload: JwtPayload, clientId?: string): string[] {
   }
 
   // Backward-compatible aliasing:
-  // OPS users may be assigned NAV roles (OPS_USER / OPS_MANAGEMENT) in Keycloak.
-  // Treat them as OPS for API authorization checks.
+  // Some environments use OPS, others OPS_USER / OPS_MANAGEMENT.
+  // Keep both aliases so authorization works consistently.
+  if (roles.has('OPS')) {
+    roles.add('OPS_USER');
+  }
   if (roles.has('OPS_USER') || roles.has('OPS_MANAGEMENT')) {
     roles.add('OPS');
+    roles.add('OPS_USER');
   }
 
   return Array.from(roles);
