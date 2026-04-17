@@ -20,26 +20,26 @@ model NavigationFolder {
   group      NavigationGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   subFolders NavigationSubFolder[]
 
+  @@unique([groupId, name])
   @@index([groupId])
   @@index([sortOrder])
-  @@unique([groupId, name])
   @@map("navigation_folders")
 }
 
 model NavigationSubFolder {
-  id         Int                    @id @default(autoincrement())
-  folderId   Int
-  name       String
-  path       String
-  sortOrder  Int                    @default(0)
-  createdAt  DateTime               @default(now())
-  updatedAt  DateTime               @updatedAt
-  folder     NavigationFolder       @relation(fields: [folderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  rules      NavigationAccessRule[]
+  id        Int                    @id @default(autoincrement())
+  folderId  Int
+  name      String
+  path      String
+  sortOrder Int                    @default(0)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+  folder    NavigationFolder       @relation(fields: [folderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  rules     NavigationAccessRule[]
 
+  @@unique([folderId, path])
   @@index([folderId])
   @@index([sortOrder])
-  @@unique([folderId, path])
   @@map("navigation_sub_folders")
 }
 
@@ -52,9 +52,9 @@ model NavigationAccessRule {
   updatedAt   DateTime            @updatedAt
   subFolder   NavigationSubFolder @relation(fields: [subFolderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
+  @@unique([subFolderId, roleName])
   @@index([subFolderId])
   @@index([roleName])
-  @@unique([subFolderId, roleName])
   @@map("navigation_access_rules")
 }
 

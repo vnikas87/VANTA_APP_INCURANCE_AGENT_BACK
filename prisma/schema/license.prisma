@@ -1,37 +1,37 @@
 model AppLicense {
-  id            Int      @id @default(1)
-  maxUsers      Int
-  isActive      Boolean  @default(false)
-  allowOverflow Boolean  @default(false)
-  tenantCode    String?
-  expiresAt     DateTime?
+  id             Int       @id @default(1)
+  maxUsers       Int
+  isActive       Boolean   @default(false)
+  allowOverflow  Boolean   @default(false)
+  tenantCode     String?
+  expiresAt      DateTime?
   licenseTokenId String?
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@map("app_licenses")
 }
 
 model LicenseGrant {
-  id             Int       @id @default(autoincrement())
-  tokenId        String    @unique
-  codeHash       String    @unique
-  seats          Int
-  tenantCode     String?
-  expiresAt      DateTime?
-  issuedTo       String?
-  metadata       Json?
-  isActive       Boolean   @default(true)
-  activatedById  Int?
+  id              Int       @id @default(autoincrement())
+  tokenId         String    @unique
+  codeHash        String    @unique
+  seats           Int
+  tenantCode      String?
+  expiresAt       DateTime?
+  issuedTo        String?
+  metadata        Json?
+  isActive        Boolean   @default(true)
+  activatedById   Int?
   deactivatedById Int?
-  activatedAt    DateTime  @default(now())
-  deactivatedAt  DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  activatedAt     DateTime  @default(now())
+  deactivatedAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  activatedBy    User?     @relation("LicenseGrantActivatedBy", fields: [activatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  deactivatedBy  User?     @relation("LicenseGrantDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  activatedBy   User? @relation("LicenseGrantActivatedBy", fields: [activatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  deactivatedBy User? @relation("LicenseGrantDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([isActive])
   @@index([activatedById])
@@ -40,20 +40,20 @@ model LicenseGrant {
 }
 
 model UserLicense {
-  id            Int       @id @default(autoincrement())
-  userId        Int       @unique
-  isActive      Boolean   @default(true)
-  activatedById Int?
+  id              Int       @id @default(autoincrement())
+  userId          Int       @unique
+  isActive        Boolean   @default(true)
+  activatedById   Int?
   deactivatedById Int?
-  activatedAt   DateTime  @default(now())
-  deactivatedAt DateTime?
-  notes         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  activatedAt     DateTime  @default(now())
+  deactivatedAt   DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  user          User      @relation("UserLicenseOwner", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  activatedBy   User?     @relation("UserLicenseActivatedBy", fields: [activatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  deactivatedBy User?     @relation("UserLicenseDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  user          User  @relation("UserLicenseOwner", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  activatedBy   User? @relation("UserLicenseActivatedBy", fields: [activatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  deactivatedBy User? @relation("UserLicenseDeactivatedBy", fields: [deactivatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([isActive])
   @@index([activatedById])

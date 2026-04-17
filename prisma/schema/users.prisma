@@ -1,29 +1,56 @@
 model User {
-  id            Int            @id @default(autoincrement())
-  keycloakId    String         @unique
-  name          String
-  email         String         @unique
-  phone         String?
-  mobilePhone   String?
-  companyRole   String?
-  signature     String?
-  avatarUrl     String?
-  createdId     Int
-  updatedId     Int
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id          Int      @id @default(autoincrement())
+  keycloakId  String   @unique
+  name        String
+  email       String   @unique
+  phone       String?
+  mobilePhone String?
+  companyRole String?
+  signature   String?
+  avatarUrl   String?
+  createdId   Int
+  updatedId   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  createdBy     User           @relation("UserCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  updatedBy     User           @relation("UserUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  createdUsers  User[]         @relation("UserCreatedBy")
-  updatedUsers  User[]         @relation("UserUpdatedBy")
-  apiCallLogs   ApiCallLog[]
-  authEventLogs AuthEventLog[]
-  userLicense   UserLicense?   @relation("UserLicenseOwner")
-  activatedUserLicenses UserLicense[] @relation("UserLicenseActivatedBy")
-  deactivatedUserLicenses UserLicense[] @relation("UserLicenseDeactivatedBy")
-  activatedLicenseGrants LicenseGrant[] @relation("LicenseGrantActivatedBy")
-  deactivatedLicenseGrants LicenseGrant[] @relation("LicenseGrantDeactivatedBy")
+  createdBy                 User                @relation("UserCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy                 User                @relation("UserUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdUsers              User[]              @relation("UserCreatedBy")
+  updatedUsers              User[]              @relation("UserUpdatedBy")
+  apiCallLogs               ApiCallLog[]
+  authEventLogs             AuthEventLog[]
+  userLicense               UserLicense?        @relation("UserLicenseOwner")
+  activatedUserLicenses     UserLicense[]       @relation("UserLicenseActivatedBy")
+  deactivatedUserLicenses   UserLicense[]       @relation("UserLicenseDeactivatedBy")
+  activatedLicenseGrants    LicenseGrant[]      @relation("LicenseGrantActivatedBy")
+  deactivatedLicenseGrants  LicenseGrant[]      @relation("LicenseGrantDeactivatedBy")
+  createdPartners           Partner[]           @relation("PartnerCreatedBy")
+  updatedPartners           Partner[]           @relation("PartnerUpdatedBy")
+  createdInsuranceCompanies InsuranceCompany[]  @relation("InsuranceCompanyCreatedBy")
+  updatedInsuranceCompanies InsuranceCompany[]  @relation("InsuranceCompanyUpdatedBy")
+  createdInsuranceBranches  InsuranceBranch[]   @relation("InsuranceBranchCreatedBy")
+  updatedInsuranceBranches  InsuranceBranch[]   @relation("InsuranceBranchUpdatedBy")
+  createdContractTypes      ContractType[]      @relation("ContractTypeCreatedBy")
+  updatedContractTypes      ContractType[]      @relation("ContractTypeUpdatedBy")
+  createdDocumentTypes      DocumentType[]      @relation("DocumentTypeCreatedBy")
+  updatedDocumentTypes      DocumentType[]      @relation("DocumentTypeUpdatedBy")
+  createdProductionTypes    ProductionType[]    @relation("ProductionTypeCreatedBy")
+  updatedProductionTypes    ProductionType[]    @relation("ProductionTypeUpdatedBy")
+  createdPaymentFrequencies PaymentFrequency[]  @relation("PaymentFrequencyCreatedBy")
+  updatedPaymentFrequencies PaymentFrequency[]  @relation("PaymentFrequencyUpdatedBy")
+  createdCustomers          Customer[]          @relation("CustomerCreatedBy")
+  updatedCustomers          Customer[]          @relation("CustomerUpdatedBy")
+  createdPolicies           Policy[]            @relation("PolicyCreatedBy")
+  updatedPolicies           Policy[]            @relation("PolicyUpdatedBy")
+  createdPolicyTransactions PolicyTransaction[] @relation("PolicyTransactionCreatedBy")
+  updatedPolicyTransactions PolicyTransaction[] @relation("PolicyTransactionUpdatedBy")
+  createdPolicyFinancials   PolicyFinancial[]   @relation("PolicyFinancialCreatedBy")
+  updatedPolicyFinancials   PolicyFinancial[]   @relation("PolicyFinancialUpdatedBy")
+  createdPolicyNotes        PolicyNote[]        @relation("PolicyNoteCreatedBy")
+  updatedPolicyNotes        PolicyNote[]        @relation("PolicyNoteUpdatedBy")
+  gridPreferences           UserGridPreference[] @relation("UserGridPreferenceOwner")
+  createdGridPreferences    UserGridPreference[] @relation("UserGridPreferenceCreatedBy")
+  updatedGridPreferences    UserGridPreference[] @relation("UserGridPreferenceUpdatedBy")
 
   @@index([createdId])
   @@index([updatedId])

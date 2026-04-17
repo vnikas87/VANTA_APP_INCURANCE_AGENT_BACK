@@ -9,7 +9,7 @@ async function getNextUserId(): Promise<number> {
   return rows[0].id;
 }
 
-async function ensureBootstrapUser(): Promise<void> {
+async function ensureBootstrapUser(): Promise<number> {
   const existing = await prisma.user.findUnique({
     where: { keycloakId: 'system-seed' },
   });
@@ -28,7 +28,7 @@ async function ensureBootstrapUser(): Promise<void> {
       },
     });
 
-    return;
+    return id;
   }
 
   await prisma.user.update({
@@ -38,6 +38,8 @@ async function ensureBootstrapUser(): Promise<void> {
       name: existing.name,
     },
   });
+
+  return existing.id;
 }
 
 async function seedNavigation(): Promise<void> {
@@ -215,6 +217,254 @@ async function seedNavigation(): Promise<void> {
     },
   });
 
+  const insuranceGroup = await prisma.navigationGroup.upsert({
+    where: { name: 'Insurance' },
+    create: { name: 'Insurance', sortOrder: 3 },
+    update: { sortOrder: 3 },
+  });
+
+  const insuranceSettingsFolder = await prisma.navigationFolder.upsert({
+    where: {
+      groupId_name: {
+        groupId: insuranceGroup.id,
+        name: 'Configuration',
+      },
+    },
+    create: {
+      groupId: insuranceGroup.id,
+      name: 'Configuration',
+      sortOrder: 1,
+    },
+    update: {
+      sortOrder: 1,
+    },
+  });
+
+  const insuranceOperationsFolder = await prisma.navigationFolder.upsert({
+    where: {
+      groupId_name: {
+        groupId: insuranceGroup.id,
+        name: 'Operations',
+      },
+    },
+    create: {
+      groupId: insuranceGroup.id,
+      name: 'Operations',
+      sortOrder: 2,
+    },
+    update: {
+      sortOrder: 2,
+    },
+  });
+
+  const legacyLookupsSubFolder = await prisma.navigationSubFolder.findUnique({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/lookups',
+      },
+    },
+  });
+
+  if (legacyLookupsSubFolder) {
+    await prisma.navigationAccessRule.deleteMany({
+      where: { subFolderId: legacyLookupsSubFolder.id },
+    });
+    await prisma.navigationSubFolder.delete({
+      where: { id: legacyLookupsSubFolder.id },
+    });
+  }
+
+  const subFolderInsurancePartners = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/partners',
+      },
+    },
+    create: {
+      folderId: insuranceSettingsFolder.id,
+      name: 'Insurance Partners',
+      path: '/settings/insurance/partners',
+      sortOrder: 1,
+    },
+    update: {
+      name: 'Insurance Partners',
+      sortOrder: 1,
+    },
+  });
+
+  const subFolderInsuranceCompanies = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/companies',
+      },
+    },
+    create: {
+      folderId: insuranceSettingsFolder.id,
+      name: 'Insurance Companies',
+      path: '/settings/insurance/companies',
+      sortOrder: 2,
+    },
+    update: {
+      name: 'Insurance Companies',
+      sortOrder: 2,
+    },
+  });
+
+  const subFolderInsuranceBranches = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/branches',
+      },
+    },
+    create: {
+      folderId: insuranceSettingsFolder.id,
+      name: 'Insurance Branches',
+      path: '/settings/insurance/branches',
+      sortOrder: 3,
+    },
+    update: {
+      name: 'Insurance Branches',
+      sortOrder: 3,
+    },
+  });
+
+  const subFolderInsuranceContractTypes = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/contract-types',
+      },
+    },
+    create: {
+      folderId: insuranceSettingsFolder.id,
+      name: 'Insurance Contract Types',
+      path: '/settings/insurance/contract-types',
+      sortOrder: 4,
+    },
+    update: {
+      name: 'Insurance Contract Types',
+      sortOrder: 4,
+    },
+  });
+
+  const subFolderInsuranceDocumentTypes = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/document-types',
+      },
+    },
+    create: {
+      folderId: insuranceSettingsFolder.id,
+      name: 'Insurance Document Types',
+      path: '/settings/insurance/document-types',
+      sortOrder: 5,
+    },
+    update: {
+      name: 'Insurance Document Types',
+      sortOrder: 5,
+    },
+  });
+
+  const subFolderInsuranceProductionTypes = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/production-types',
+      },
+    },
+    create: {
+      folderId: insuranceSettingsFolder.id,
+      name: 'Insurance Production Types',
+      path: '/settings/insurance/production-types',
+      sortOrder: 6,
+    },
+    update: {
+      name: 'Insurance Production Types',
+      sortOrder: 6,
+    },
+  });
+
+  const subFolderInsurancePaymentFrequencies = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/payment-frequencies',
+      },
+    },
+    create: {
+      folderId: insuranceSettingsFolder.id,
+      name: 'Insurance Payment Frequencies',
+      path: '/settings/insurance/payment-frequencies',
+      sortOrder: 7,
+    },
+    update: {
+      name: 'Insurance Payment Frequencies',
+      sortOrder: 7,
+    },
+  });
+
+  const subFolderInsuranceCustomers = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/customers',
+      },
+    },
+    create: {
+      folderId: insuranceSettingsFolder.id,
+      name: 'Insurance Customers',
+      path: '/settings/insurance/customers',
+      sortOrder: 8,
+    },
+    update: {
+      name: 'Insurance Customers',
+      sortOrder: 8,
+    },
+  });
+
+  const subFolderInsurancePolicies = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceSettingsFolder.id,
+        path: '/settings/insurance/policies',
+      },
+    },
+    create: {
+      folderId: insuranceSettingsFolder.id,
+      name: 'Insurance Policies',
+      path: '/settings/insurance/policies',
+      sortOrder: 9,
+    },
+    update: {
+      name: 'Insurance Policies',
+      sortOrder: 9,
+    },
+  });
+
+  const subFolderInsuranceProduction = await prisma.navigationSubFolder.upsert({
+    where: {
+      folderId_path: {
+        folderId: insuranceOperationsFolder.id,
+        path: '/insurance/production',
+      },
+    },
+    create: {
+      folderId: insuranceOperationsFolder.id,
+      name: 'Production Management',
+      path: '/insurance/production',
+      sortOrder: 1,
+    },
+    update: {
+      name: 'Production Management',
+      sortOrder: 1,
+    },
+  });
+
   const roleSeeds = [
     { role: 'ADMINISTRATOR', access: true },
     { role: 'ADMIN', access: true },
@@ -318,6 +568,184 @@ async function seedNavigation(): Promise<void> {
         canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR',
       },
     });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsurancePartners.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsurancePartners.id,
+        roleName: entry.role,
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+      update: {
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+    });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsuranceCompanies.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsuranceCompanies.id,
+        roleName: entry.role,
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+      update: {
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+    });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsuranceBranches.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsuranceBranches.id,
+        roleName: entry.role,
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+      update: {
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+    });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsuranceContractTypes.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsuranceContractTypes.id,
+        roleName: entry.role,
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+      update: {
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+    });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsuranceDocumentTypes.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsuranceDocumentTypes.id,
+        roleName: entry.role,
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+      update: {
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+    });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsuranceProductionTypes.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsuranceProductionTypes.id,
+        roleName: entry.role,
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+      update: {
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+    });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsurancePaymentFrequencies.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsurancePaymentFrequencies.id,
+        roleName: entry.role,
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+      update: {
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+    });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsuranceCustomers.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsuranceCustomers.id,
+        roleName: entry.role,
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+      update: {
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+    });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsurancePolicies.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsurancePolicies.id,
+        roleName: entry.role,
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+      update: {
+        canAccess: entry.role === 'ADMIN' || entry.role === 'ADMINISTRATOR' || entry.role === 'EDITOR',
+      },
+    });
+
+    await prisma.navigationAccessRule.upsert({
+      where: {
+        subFolderId_roleName: {
+          subFolderId: subFolderInsuranceProduction.id,
+          roleName: entry.role,
+        },
+      },
+      create: {
+        subFolderId: subFolderInsuranceProduction.id,
+        roleName: entry.role,
+        canAccess:
+          entry.role === 'ADMIN' ||
+          entry.role === 'ADMINISTRATOR' ||
+          entry.role === 'EDITOR' ||
+          entry.role === 'VIEWER',
+      },
+      update: {
+        canAccess:
+          entry.role === 'ADMIN' ||
+          entry.role === 'ADMINISTRATOR' ||
+          entry.role === 'EDITOR' ||
+          entry.role === 'VIEWER',
+      },
+    });
   }
 }
 
@@ -343,10 +771,88 @@ async function seedLicense(): Promise<void> {
   });
 }
 
+async function seedInsuranceLookups(seedUserId: number): Promise<void> {
+  const partnerSeeds = ['Direct', 'Broker Channel'];
+  const companySeeds = ['GROUPAMA', 'MINETTA'];
+  const branchSeeds = ['Οχημάτων', 'Υγείας', 'Πυρός'];
+  const contractTypeSeeds = ['Main Contract'];
+  const documentTypeSeeds = ['Τιμολόγιο', 'Απόδειξη'];
+  const productionTypeSeeds = ['Νέα Παραγωγή', 'Ανανέωση'];
+  const paymentFrequencySeeds = [1, 2, 4, 12];
+
+  for (const name of partnerSeeds) {
+    const existing = await prisma.partner.findFirst({ where: { name } });
+    if (existing) {
+      await prisma.partner.update({
+        where: { id: existing.id },
+        data: { updatedId: seedUserId },
+      });
+      continue;
+    }
+    await prisma.partner.create({
+      data: { name, createdId: seedUserId, updatedId: seedUserId },
+    });
+  }
+
+  for (const name of companySeeds) {
+    await prisma.insuranceCompany.upsert({
+      where: { name },
+      create: { name, createdId: seedUserId, updatedId: seedUserId },
+      update: { updatedId: seedUserId },
+    });
+  }
+
+  for (const name of branchSeeds) {
+    await prisma.insuranceBranch.upsert({
+      where: { name },
+      create: { name, createdId: seedUserId, updatedId: seedUserId },
+      update: { updatedId: seedUserId },
+    });
+  }
+
+  for (const name of contractTypeSeeds) {
+    await prisma.contractType.upsert({
+      where: { name },
+      create: { name, createdId: seedUserId, updatedId: seedUserId },
+      update: { updatedId: seedUserId },
+    });
+  }
+
+  for (const name of documentTypeSeeds) {
+    await prisma.documentType.upsert({
+      where: { name },
+      create: { name, createdId: seedUserId, updatedId: seedUserId },
+      update: { updatedId: seedUserId },
+    });
+  }
+
+  for (const name of productionTypeSeeds) {
+    await prisma.productionType.upsert({
+      where: { name },
+      create: { name, createdId: seedUserId, updatedId: seedUserId },
+      update: { updatedId: seedUserId },
+    });
+  }
+
+  for (const value of paymentFrequencySeeds) {
+    await prisma.paymentFrequency.upsert({
+      where: { value },
+      create: {
+        value,
+        name: `Every ${value}`,
+        createdId: seedUserId,
+        updatedId: seedUserId,
+      },
+      update: { updatedId: seedUserId },
+    });
+  }
+}
+
 async function main() {
-  await ensureBootstrapUser();
+  const seedUserId = await ensureBootstrapUser();
   await seedLicense();
   await seedNavigation();
+  await seedInsuranceLookups(seedUserId);
 
   // eslint-disable-next-line no-console
   console.log('Seed complete: bootstrap user + navigation rules');

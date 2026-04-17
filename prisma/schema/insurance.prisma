@@ -1,0 +1,340 @@
+model Partner {
+  id         Int      @id @default(autoincrement())
+  code       String?  @unique
+  name       String
+  greekLabel String?  @default("Συνεργάτης")
+  isActive   Boolean  @default(true)
+  createdId  Int
+  updatedId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  createdBy User @relation("PartnerCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy User @relation("PartnerUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  policies Policy[]
+
+  @@index([name])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("partners")
+}
+
+model InsuranceCompany {
+  id         Int      @id @default(autoincrement())
+  code       String?  @unique
+  name       String   @unique
+  greekLabel String?  @default("Εταιρεία")
+  isActive   Boolean  @default(true)
+  createdId  Int
+  updatedId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  createdBy User @relation("InsuranceCompanyCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy User @relation("InsuranceCompanyUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  contractTypes ContractType[]
+  policies      Policy[]
+
+  @@index([name])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("insurance_companies")
+}
+
+model InsuranceBranch {
+  id         Int      @id @default(autoincrement())
+  code       String?  @unique
+  name       String   @unique
+  greekLabel String?  @default("Κλάδος")
+  isActive   Boolean  @default(true)
+  createdId  Int
+  updatedId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  createdBy User @relation("InsuranceBranchCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy User @relation("InsuranceBranchUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  policies Policy[]
+
+  @@index([name])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("insurance_branches")
+}
+
+model ContractType {
+  id         Int      @id @default(autoincrement())
+  code       String?  @unique
+  name       String   @unique
+  greekLabel String?  @default("Σύμβαση")
+  companyId  Int?
+  createdId  Int
+  updatedId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  company   InsuranceCompany? @relation(fields: [companyId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  createdBy User              @relation("ContractTypeCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy User              @relation("ContractTypeUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  policies Policy[]
+
+  @@index([name])
+  @@index([companyId])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("contract_types")
+}
+
+model DocumentType {
+  id         Int      @id @default(autoincrement())
+  code       String?  @unique
+  name       String   @unique
+  greekLabel String?  @default("Είδος Παραστατικού")
+  isActive   Boolean  @default(true)
+  createdId  Int
+  updatedId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  createdBy User @relation("DocumentTypeCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy User @relation("DocumentTypeUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  transactions PolicyTransaction[]
+
+  @@index([name])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("document_types")
+}
+
+model ProductionType {
+  id         Int      @id @default(autoincrement())
+  code       String?  @unique
+  name       String   @unique
+  greekLabel String?  @default("Είδος Παραγωγής")
+  isActive   Boolean  @default(true)
+  createdId  Int
+  updatedId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  createdBy User @relation("ProductionTypeCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy User @relation("ProductionTypeUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  transactions PolicyTransaction[]
+
+  @@index([name])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("production_types")
+}
+
+model PaymentFrequency {
+  id         Int      @id @default(autoincrement())
+  value      Int      @unique
+  name       String?
+  greekLabel String?  @default("Συχνότητα Πληρωμής")
+  createdId  Int
+  updatedId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  createdBy User @relation("PaymentFrequencyCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy User @relation("PaymentFrequencyUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  transactions PolicyTransaction[]
+
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("payment_frequencies")
+}
+
+model Customer {
+  id             Int      @id @default(autoincrement())
+  firstName      String?
+  lastName       String
+  fullName       String?
+  greekFirstName String?  @default("Όνομα")
+  greekLastName  String?  @default("Επώνυμο")
+  phone          String?
+  mobilePhone    String?
+  email          String?
+  taxNumber      String?
+  notes          String?
+  createdId      Int
+  updatedId      Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  createdBy User @relation("CustomerCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy User @relation("CustomerUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  policies Policy[]
+
+  @@index([lastName])
+  @@index([firstName])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("customers")
+}
+
+model Policy {
+  id             Int       @id @default(autoincrement())
+  policyNumber   String?   @unique
+  identifier     String?
+  customerId     Int
+  partnerId      Int?
+  companyId      Int?
+  branchId       Int?
+  contractTypeId Int?
+  startDate      DateTime?
+  endDate        DateTime?
+  isActive       Boolean   @default(true)
+  createdId      Int
+  updatedId      Int
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  customer     Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  partner      Partner?          @relation(fields: [partnerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  company      InsuranceCompany? @relation(fields: [companyId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  branch       InsuranceBranch?  @relation(fields: [branchId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  contractType ContractType?     @relation(fields: [contractTypeId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  createdBy    User              @relation("PolicyCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy    User              @relation("PolicyUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  notes        PolicyNote[]
+  transactions PolicyTransaction[]
+
+  @@index([customerId])
+  @@index([partnerId])
+  @@index([companyId])
+  @@index([branchId])
+  @@index([contractTypeId])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("policies")
+}
+
+model PolicyTransaction {
+  id                 Int       @id @default(autoincrement())
+  policyId           Int
+  applicationDate    DateTime?
+  issueDate          DateTime?
+  deliveryDate       DateTime?
+  documentTypeId     Int?
+  productionTypeId   Int?
+  paymentFrequencyId Int?
+  insuranceYear      Int?
+  installmentNumber  Int?
+  remarks            String?
+  createdId          Int
+  updatedId          Int
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  policy           Policy            @relation(fields: [policyId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  documentType     DocumentType?     @relation(fields: [documentTypeId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  productionType   ProductionType?   @relation(fields: [productionTypeId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  paymentFrequency PaymentFrequency? @relation(fields: [paymentFrequencyId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  createdBy        User              @relation("PolicyTransactionCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy        User              @relation("PolicyTransactionUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  financials PolicyFinancial[]
+  notes      PolicyNote[]
+
+  @@index([policyId])
+  @@index([documentTypeId])
+  @@index([productionTypeId])
+  @@index([paymentFrequencyId])
+  @@index([applicationDate])
+  @@index([issueDate])
+  @@index([deliveryDate])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("policy_transactions")
+}
+
+model PolicyFinancial {
+  id                     Int      @id @default(autoincrement())
+  transactionId          Int
+  annualNetAmount        Decimal? @db.Decimal(12, 2)
+  annualGrossAmount      Decimal? @db.Decimal(12, 2)
+  installmentNetAmount   Decimal? @db.Decimal(12, 2)
+  installmentGrossAmount Decimal? @db.Decimal(12, 2)
+  contractRate           Decimal? @db.Decimal(8, 4)
+  contractCommission     Decimal? @db.Decimal(12, 2)
+  incomingCommission     Decimal? @db.Decimal(12, 2)
+  performanceRate        Decimal? @db.Decimal(8, 4)
+  performanceAmount      Decimal? @db.Decimal(12, 2)
+  differenceAmount       Decimal? @db.Decimal(12, 2)
+  createdId              Int
+  updatedId              Int
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  transaction PolicyTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdBy   User              @relation("PolicyFinancialCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy   User              @relation("PolicyFinancialUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([transactionId])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("policy_financials")
+}
+
+model PolicyNote {
+  id            Int      @id @default(autoincrement())
+  policyId      Int?
+  transactionId Int?
+  noteType      String?
+  text          String
+  createdId     Int
+  updatedId     Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  policy      Policy?            @relation(fields: [policyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  transaction PolicyTransaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdBy   User               @relation("PolicyNoteCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy   User               @relation("PolicyNoteUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([policyId])
+  @@index([transactionId])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("policy_notes")
+}
+
+model UserGridPreference {
+  id                    Int      @id @default(autoincrement())
+  userId                Int
+  viewKey               String
+  filtersJson           Json?
+  sortingJson           Json?
+  columnOrderJson       Json?
+  hiddenColumnNamesJson Json?
+  groupingJson          Json?
+  visibleFilterKeysJson Json?
+  tableFiltersJson      Json?
+  createdId             Int
+  updatedId             Int
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user      User @relation("UserGridPreferenceOwner", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdBy User @relation("UserGridPreferenceCreatedBy", fields: [createdId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedBy User @relation("UserGridPreferenceUpdatedBy", fields: [updatedId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([userId, viewKey])
+  @@index([userId])
+  @@index([createdId])
+  @@index([updatedId])
+  @@map("user_grid_preferences")
+}

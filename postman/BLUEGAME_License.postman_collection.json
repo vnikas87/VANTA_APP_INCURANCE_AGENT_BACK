@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "4df6406e-a6a1-4d8b-af8f-22f5f7068a5f",
-    "name": "BLUEGAME License Flow",
+    "name": "VANTA License Flow",
     "description": "End-to-end flow: get Keycloak token, activate license, assign seat, test user access.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

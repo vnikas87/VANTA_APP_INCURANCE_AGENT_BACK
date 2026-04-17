@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { ensureActorUser } from '../lib/actorUser';
 import { assertUserHasLicenseSeat, LicenseLimitError } from '../lib/license';
+import { LEGACY_API_ROLES } from '../config/roles';
 import { extractRoles, verifyJwt } from '../lib/jwt';
 
 function getBearerToken(req: Request): string | null {
@@ -40,11 +41,12 @@ export async function authMiddleware(
       typeof payload.preferred_username === 'string' ? payload.preferred_username : undefined;
     const email = typeof payload.email === 'string' ? payload.email : undefined;
     const roles = extractRoles(payload, process.env.KEYCLOAK_CLIENT_ID);
+    const hasLicenseBypassRole = roles.includes(LEGACY_API_ROLES.ADMINISTRATOR);
 
     // Auto-sync Keycloak user into users table on first successful auth.
     const dbUserId = await ensureActorUser({ sub, username, email });
     const isLicenseAdminRoute = req.originalUrl.startsWith('/api/license');
-    if (!isLicenseAdminRoute) {
+    if (!isLicenseAdminRoute && !hasLicenseBypassRole) {
       await assertUserHasLicenseSeat(dbUserId);
     }
 
