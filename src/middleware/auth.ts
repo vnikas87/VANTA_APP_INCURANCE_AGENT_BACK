@@ -44,7 +44,7 @@ export async function authMiddleware(
     const hasLicenseBypassRole = roles.includes(LEGACY_API_ROLES.ADMINISTRATOR);
 
     // Auto-sync Keycloak user into users table on first successful auth.
-    const dbUserId = await ensureActorUser({ sub, username, email });
+    const dbUserId = await ensureActorUser({ sub, username, email, roles });
     const isLicenseAdminRoute = req.originalUrl.startsWith('/api/license');
     if (!isLicenseAdminRoute && !hasLicenseBypassRole) {
       await assertUserHasLicenseSeat(dbUserId);
