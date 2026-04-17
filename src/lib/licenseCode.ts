@@ -28,7 +28,14 @@ function decodeBase64Url(value: string): string {
 }
 
 function normalizePublicKey(key: string): string {
-  const normalizedNewlines = key.replace(/\\n/g, '\n').trim();
+  const trimmed = key.trim();
+  const unquoted =
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+      ? trimmed.slice(1, -1).trim()
+      : trimmed;
+
+  const normalizedNewlines = unquoted.replace(/\\r/g, '').replace(/\\n/g, '\n').trim();
   if (normalizedNewlines.includes('BEGIN PUBLIC KEY')) {
     return normalizedNewlines;
   }
@@ -36,10 +43,28 @@ function normalizePublicKey(key: string): string {
 }
 
 function verifyRS256(signingInput: string, signature: Buffer, publicKeyPem: string): boolean {
-  const verifier = crypto.createVerify('RSA-SHA256');
-  verifier.update(signingInput);
-  verifier.end();
-  return verifier.verify(publicKeyPem, signature);
+  try {
+    const verifier = crypto.createVerify('RSA-SHA256');
+    verifier.update(signingInput);
+    verifier.end();
+    return verifier.verify(publicKeyPem, signature);
+  } catch {
+    throw new Error(
+      'Invalid LICENSE_PUBLIC_KEY format. Use a PEM public key (or single-line value with escaped \\n).'
+    );
+  }
+}
+
+function normalizeToken(code: string): string {
+  const trimmed = code.trim();
+  const unquoted =
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+      ? trimmed.slice(1, -1).trim()
+      : trimmed;
+
+  // JWT must not contain any spaces/newlines when copied from text editors/email.
+  return unquoted.replace(/\s+/g, '');
 }
 
 export function hashLicenseCode(code: string): string {
@@ -50,7 +75,7 @@ export function verifyLicenseCode(
   code: string,
   options: VerifyLicenseOptions = {}
 ): LicenseCodePayload {
-  const token = code.trim();
+  const token = normalizeToken(code);
   const { publicKey, expectedIssuer, expectedAudience, expectedTenantCode } = options;
 
   if (!publicKey) {
