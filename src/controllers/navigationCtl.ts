@@ -36,7 +36,11 @@ type MoveSubFolderBody = {
 };
 
 function normalizeRoles(roles: string[]): string[] {
-  return roles.map((role) => role.toUpperCase());
+  const normalized = roles.map((role) => role.toUpperCase());
+  if (normalized.includes('OPS_USER') || normalized.includes('OPS_MANAGEMENT')) {
+    normalized.push('OPS');
+  }
+  return Array.from(new Set(normalized));
 }
 
 async function isAllowedNavigationRole(roleName: string): Promise<boolean> {
@@ -75,6 +79,18 @@ export async function getNavigationMenu(req: Request, res: Response): Promise<Re
             subFolders: folder.subFolders.filter((sub) => {
               // Dashboard root stays available for authenticated users by default.
               if (sub.path === '/') return true;
+
+              // Backward-compatible default for operations users.
+              // Allow production paths for OPS-family roles even if older DB rules are missing/deny.
+              if (
+                sub.path.startsWith('/insurance/production') &&
+                (userRoles.includes('OPS') ||
+                  userRoles.includes('OPS_USER') ||
+                  userRoles.includes('OPS_MANAGEMENT'))
+              ) {
+                return true;
+              }
+
               if (sub.rules.length === 0) return false;
               return sub.rules.some((rule) => rule.canAccess && userRoles.includes(rule.roleName.toUpperCase()));
             }),

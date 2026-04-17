@@ -118,5 +118,12 @@ export function extractRoles(payload: JwtPayload, clientId?: string): string[] {
     clientRoles.forEach((role) => roles.add(role.toUpperCase()));
   }
 
+  // Backward-compatible aliasing:
+  // OPS users may be assigned NAV roles (OPS_USER / OPS_MANAGEMENT) in Keycloak.
+  // Treat them as OPS for API authorization checks.
+  if (roles.has('OPS_USER') || roles.has('OPS_MANAGEMENT')) {
+    roles.add('OPS');
+  }
+
   return Array.from(roles);
 }
