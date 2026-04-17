@@ -38,9 +38,6 @@ type MoveSubFolderBody = {
 const ROLE_ADMINISTRATOR = 'ADMINISTRATOR';
 const ROLE_OPS_USER = 'OPS_USER';
 
-const OPS_ALLOWED_EXACT_PATHS = new Set(['/']);
-const OPS_ALLOWED_PREFIXES = ['/insurance/production', '/settings/profile'];
-
 function normalizeRoles(roles: string[]): string[] {
   const normalized = roles.map((role) => role.toUpperCase().trim());
 
@@ -61,7 +58,10 @@ function normalizeRoles(roles: string[]): string[] {
   return Array.from(new Set(normalized.filter(Boolean)));
 }
 
-function canAccessPath(path: string, roles: string[]): boolean {
+function canAccessSubFolder(
+  subFolder: { path: string; rules: Array<{ roleName: string; canAccess: boolean }> },
+  roles: string[]
+): boolean {
   if (roles.includes(ROLE_ADMINISTRATOR)) {
     return true;
   }
@@ -70,15 +70,16 @@ function canAccessPath(path: string, roles: string[]): boolean {
     return false;
   }
 
-  if (OPS_ALLOWED_EXACT_PATHS.has(path)) {
+  // Keep dashboard root accessible for authenticated OPS users.
+  if (subFolder.path === '/') {
     return true;
   }
 
-  if (OPS_ALLOWED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
-    return true;
-  }
-
-  return false;
+  // OPS menu access is controlled by DB navigation rules table.
+  // Only OPS_USER rules are considered for non-admin users.
+  return subFolder.rules.some(
+    (rule) => rule.roleName.toUpperCase() === ROLE_OPS_USER && rule.canAccess === true
+  );
 }
 
 async function isAllowedNavigationRole(roleName: string): Promise<boolean> {
@@ -114,7 +115,7 @@ export async function getNavigationMenu(req: Request, res: Response): Promise<Re
         folders: group.folders
           .map((folder) => ({
             ...folder,
-            subFolders: folder.subFolders.filter((sub) => canAccessPath(sub.path, userRoles)),
+            subFolders: folder.subFolders.filter((sub) => canAccessSubFolder(sub, userRoles)),
           }))
           .filter((folder) => folder.subFolders.length > 0),
       }))
