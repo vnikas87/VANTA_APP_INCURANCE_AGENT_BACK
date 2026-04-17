@@ -129,6 +129,7 @@ export async function getNavigationMenu(req: Request, res: Response): Promise<Re
 
 export async function getNavigationAdmin(_req: Request, res: Response): Promise<Response> {
   try {
+    const allowedRuleRoles = new Set([ROLE_ADMINISTRATOR, ROLE_OPS_USER]);
     const data = await prisma.navigationGroup.findMany({
       orderBy: { sortOrder: 'asc' },
       include: {
@@ -144,7 +145,18 @@ export async function getNavigationAdmin(_req: Request, res: Response): Promise<
       },
     });
 
-    return res.json(data);
+    const filtered = data.map((group) => ({
+      ...group,
+      folders: group.folders.map((folder) => ({
+        ...folder,
+        subFolders: folder.subFolders.map((subFolder) => ({
+          ...subFolder,
+          rules: subFolder.rules.filter((rule) => allowedRuleRoles.has(rule.roleName.toUpperCase())),
+        })),
+      })),
+    }));
+
+    return res.json(filtered);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to load admin navigation';
     return res.status(500).json({ error: message });

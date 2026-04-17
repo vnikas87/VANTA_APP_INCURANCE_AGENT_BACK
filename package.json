@@ -11,6 +11,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
     "prisma:seed": "tsx prisma/seed.ts",
+    "nav:simplify-roles": "tsx scripts/navigation/simplify-roles.ts",
     "license:issue": "tsx scripts/license/issue.ts",
     "cert:dev": "openssl req -x509 -newkey rsa:2048 -keyout certs/server.key -out certs/server.crt -sha256 -days 365 -nodes -subj '/CN=localhost'",
     "test": "echo \"No tests yet\""

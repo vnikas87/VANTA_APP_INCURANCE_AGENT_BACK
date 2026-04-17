@@ -7,6 +7,8 @@ type NavRoleBody = {
   isSystem?: boolean;
 };
 
+const SIMPLE_NAV_ROLES = new Set(['ADMINISTRATOR', 'OPS_USER']);
+
 export async function getNavigationRoles(_req: Request, res: Response): Promise<Response> {
   try {
     const roles = await prisma.navigationRole.findMany({
@@ -31,10 +33,14 @@ export async function createNavigationRole(req: Request, res: Response): Promise
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'name is required' });
     }
+    const normalizedName = name.trim().toUpperCase();
+    if (!SIMPLE_NAV_ROLES.has(normalizedName)) {
+      return res.status(400).json({ error: 'Only ADMINISTRATOR and OPS_USER are allowed' });
+    }
 
     const created = await prisma.navigationRole.create({
       data: {
-        name: name.trim().toUpperCase(),
+        name: normalizedName,
         description: description?.trim() || null,
         isSystem: Boolean(isSystem),
       },
@@ -64,6 +70,9 @@ export async function updateNavigationRole(req: Request, res: Response): Promise
     }
 
     const nextName = name?.trim().toUpperCase();
+    if (nextName && !SIMPLE_NAV_ROLES.has(nextName)) {
+      return res.status(400).json({ error: 'Only ADMINISTRATOR and OPS_USER are allowed' });
+    }
 
     const updated = await prisma.$transaction(async (tx) => {
       const role = await tx.navigationRole.update({

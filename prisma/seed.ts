@@ -45,20 +45,7 @@ async function ensureBootstrapUser(): Promise<number> {
 async function seedNavigation(): Promise<void> {
   const navRoleSeeds = [
     { name: 'ADMINISTRATOR', description: 'Legacy administrator role with full access', isSystem: true },
-    { name: 'ADMIN', description: 'API admin and navigation super access', isSystem: true },
-    { name: 'EDITOR', description: 'API editor role', isSystem: true },
-    { name: 'VIEWER', description: 'API viewer role', isSystem: true },
-    { name: 'CEO_MANAGEMENT', description: 'CEO management role', isSystem: true },
-    { name: 'OPS_MNG', description: 'Operations manager role', isSystem: true },
-    { name: 'ADMIN_MNG', description: 'Admin manager role', isSystem: true },
-    { name: 'NAV_ADMIN', description: 'Navigation admin role', isSystem: true },
-    { name: 'NAV_ADMINISTRATOR', description: 'Navigation administrator role', isSystem: true },
-    { name: 'NAV_MANAGEMENT', description: 'Navigation management role', isSystem: true },
-    { name: 'OPS_MANAGEMENT', description: 'Operations management role', isSystem: true },
-    { name: 'ADMIN_MANAGEMENT', description: 'Administration management role', isSystem: true },
     { name: 'OPS_USER', description: 'Operations user role', isSystem: true },
-    { name: 'ADMIN_USER', description: 'Admin user role', isSystem: true },
-    { name: 'EXT_USER', description: 'External user role', isSystem: true },
   ];
 
   for (const role of navRoleSeeds) {
@@ -467,20 +454,7 @@ async function seedNavigation(): Promise<void> {
 
   const roleSeeds = [
     { role: 'ADMINISTRATOR', access: true },
-    { role: 'ADMIN', access: true },
-    { role: 'EDITOR', access: true },
-    { role: 'VIEWER', access: false },
-    { role: 'CEO_MANAGEMENT', access: true },
-    { role: 'OPS_MNG', access: false },
-    { role: 'ADMIN_MNG', access: true },
-    { role: 'NAV_ADMIN', access: true },
-    { role: 'NAV_ADMINISTRATOR', access: true },
-    { role: 'NAV_MANAGEMENT', access: true },
-    { role: 'OPS_MANAGEMENT', access: false },
-    { role: 'ADMIN_MANAGEMENT', access: true },
     { role: 'OPS_USER', access: false },
-    { role: 'ADMIN_USER', access: true },
-    { role: 'EXT_USER', access: false },
   ];
 
   for (const entry of roleSeeds) {
@@ -733,17 +707,13 @@ async function seedNavigation(): Promise<void> {
         subFolderId: subFolderInsuranceProduction.id,
         roleName: entry.role,
         canAccess:
-          entry.role === 'ADMIN' ||
           entry.role === 'ADMINISTRATOR' ||
-          entry.role === 'EDITOR' ||
-          entry.role === 'VIEWER',
+          entry.role === 'OPS_USER',
       },
       update: {
         canAccess:
-          entry.role === 'ADMIN' ||
           entry.role === 'ADMINISTRATOR' ||
-          entry.role === 'EDITOR' ||
-          entry.role === 'VIEWER',
+          entry.role === 'OPS_USER',
       },
     });
   }
